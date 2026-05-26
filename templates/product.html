@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Product Details{% endblock %}
+
+{% block body_class %}mobile-view{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="mobile-container">
+    <!-- Custom client top header bar -->
+    <div class="customer-nav">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('asset_detail', asset_id=product.asset_id) }}" class="text-decoration-none d-flex align-items-center">
+                <i class="fa-solid fa-circle-chevron-left me-2 text-indigo" style="font-size: 1.15rem; color: var(--primary) !important;"></i>
+                <span class="fw-bold text-dark fs-6" style="letter-spacing: -0.01em;">Back to Display</span>
+            </a>
+            <span class="store-badge"><i class="fa-solid fa-tag me-1"></i> Product Detail</span>
+        </div>
+    </div>
+
+    <!-- Product Large Showcase Image -->
+    <div class="bg-white p-4 text-center border-bottom scroll-reveal reveal-scale">
+        {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;">
+        {% else %}
+            <div class="d-flex align-items-center justify-content-center bg-secondary-subtle rounded mx-auto" style="width: 100%; height: 260px; max-width: 280px;">
+                <i class="fa-regular fa-image text-muted" style="font-size: 64px;"></i>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Product Details Content -->
+    <div class="showcase-content flex-grow-1">
+        <div class="glass-card p-4 scroll-reveal" style="background: #ffffff; border-color: rgba(0,0,0,0.05); color: #0f172a; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border-radius: 16px;">
+            <!-- Title & Price -->
+            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                <h4 class="fw-bold text-dark mb-0" style="font-size: 1.25rem;">{{ product.name }}</h4>
+                <span class="product-price-tag" style="font-size: 1.35rem;">${{ "%.2f"|format(product.price) }}</span>
+            </div>
+
+            <!-- Parent Asset Stand Badging -->
+            <div class="mb-4 d-flex align-items-center gap-1 text-muted small" style="font-size: 0.75rem;">
+                <i class="fa-solid fa-circle text-success" style="font-size: 7px; color: var(--success) !important;"></i>
+                <span>Available on <strong>{{ product.asset.asset_name }}</strong></span>
+            </div>
+
+            <hr class="border-secondary-subtle my-3" style="border-color: rgba(0,0,0,0.08) !important;">
+
+            <!-- Specifications / Description -->
+            <h6 class="fw-bold text-dark mb-2" style="font-size: 0.85rem;">Product Description</h6>
+            <p class="text-secondary small mb-4" style="line-height: 1.6; font-size: 0.8rem;">
+                {{ product.description or 'No product specifications available. Check packaging for brand, weight, ingredients, and regulatory warnings.' }}
+            </p>
+
+            <!-- Store Location Reference -->
+            <div class="bg-light p-3 rounded d-flex align-items-center justify-content-between" style="border-radius: 12px;">
+                <div>
+                    <span class="text-muted small d-block" style="font-size: 0.7rem;">Find it in the store:</span>
+                    <strong class="text-dark" style="font-size: 0.85rem;"><i class="fa-solid fa-location-dot me-1 text-primary" style="color: var(--primary) !important;"></i> {{ product.asset.store_name }}</strong>
+                </div>
+                <span class="badge badge-glow-primary bg-white border" style="font-size: 0.7rem;">{{ product.asset.asset_type }}</span>
+            </div>
+
+            <!-- In-Card Action Buttons -->
+            <div class="mt-4 d-flex gap-2">
+                <button class="btn btn-indigo text-white w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" style="background: #4f46e5; border: none; border-radius: 12px; font-weight: 600; font-size: 0.85rem;" onclick="alert('A store representative has been paged to help you locate this item on the floor.')">
+                    <i class="fa-solid fa-bell-concierge"></i> Pager Help
+                </button>
+                <button class="btn btn-light border py-2.5 px-3 d-flex align-items-center justify-content-center" style="border-radius: 12px;" onclick="navigator.clipboard.writeText(window.location.href); alert('Product link copied!')">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Override Footer to be blank for Customer Mobile View -->
+{% block footer %}{% endblock %}

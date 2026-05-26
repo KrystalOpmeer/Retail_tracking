@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ asset.asset_name }} - Interactive Catalog{% endblock %}
+
+{% block body_class %}mobile-view{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<!-- Centered container mockup framing for smartphones -->
+<div class="mobile-container">
+    <!-- Custom client top header bar -->
+    <div class="customer-nav">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none d-flex align-items-center">
+                <i class="fa-solid fa-circle-chevron-left me-2 text-indigo" style="font-size: 1.15rem; color: var(--primary) !important;"></i>
+                <span class="fw-bold text-dark fs-6" style="letter-spacing: -0.01em;">{{ asset.store_name }}</span>
+            </a>
+            <span class="store-badge"><i class="fa-solid fa-store me-1"></i> {{ asset.asset_type }}</span>
+        </div>
+    </div>
+
+    <!-- Admin Preview Banner (only shown when ?preview=true) -->
+    {% if is_preview %}
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 10px 20px; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-eye" style="color: #1c1917; font-size: 1rem;"></i>
+        <div>
+            <span style="color: #1c1917; font-weight: 700; font-size: 0.8rem; display: block; line-height: 1.2;">ADMIN PREVIEW MODE</span>
+            <span style="color: #44403c; font-size: 0.7rem;">This view does <strong>not</strong> register a scan. Only real QR code scans count.</span>
+        </div>
+        <a href="{{ url_for('dashboard') }}" style="margin-left: auto; color: #1c1917; font-size: 0.75rem; font-weight: 700; text-decoration: none; padding: 4px 10px; border: 1px solid rgba(0,0,0,0.2); border-radius: 8px; white-space: nowrap;">
+            ← Dashboard
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Banner Section -->
+    <div class="banner-wrapper">
+        {% if asset.image %}
+            <img src="{{ url_for('static', filename='uploads/' + asset.image) }}" class="customer-banner-img" alt="{{ asset.asset_name }}">
+        {% else %}
+            <div class="customer-banner-img d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
+                <i class="fa-solid fa-store text-white opacity-25" style="font-size: 64px;"></i>
+            </div>
+        {% endif %}
+        <div class="banner-overlay"></div>
+        <div class="banner-text-overlay scroll-reveal">
+            <h4 class="fw-extrabold text-white mb-0" style="letter-spacing: -0.02em;">{{ asset.asset_name }}</h4>
+        </div>
+    </div>
+
+    <!-- Active Catalog Details Body -->
+    <div class="showcase-content flex-grow-1">
+        <!-- Asset description info -->
+        <div class="mb-4 scroll-reveal">
+            <p class="text-secondary small mb-0">
+                {{ asset.description or 'Scan display items and grab promotional discounts valid inside the retail store today!' }}
+            </p>
+        </div>
+
+        <!-- Exclusive coupon badge -->
+        <div class="promo-card scroll-reveal">
+            <div class="d-flex align-items-start gap-3">
+                <div class="bg-white bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; flex-shrink: 0;">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold mb-1" style="font-size: 0.95rem;">Stand Scan Offer</h6>
+                    <p class="small text-white-50 mb-3" style="font-size: 0.8rem; line-height: 1.4;">Get 10% off items paired to this display stand.</p>
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="fw-bold font-monospace" style="letter-spacing: 0.1em; font-size: 0.9rem;">QRRETAIL10</span>
+                        <button class="claim-code-btn" id="claimBtn" onclick="copyCode(this, 'QRRETAIL10')">
+                            <i class="fa-solid fa-copy me-1"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid catalog listings -->
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-4 scroll-reveal">
+            <span class="fw-bold text-dark text-uppercase tracking-wider small" style="font-size: 0.75rem;">Interactive Showcase</span>
+            <span class="badge bg-light text-muted border font-monospace">{{ asset.products|length }} SKUs</span>
+        </div>
+
+        {% if asset.products %}
+        <div class="row g-3 stagger-container">
+            {% for product in asset.products %}
+            <div class="col-6 stagger-item">
+                <div class="product-grid-tile h-100 d-flex flex-column justify-content-between" onclick="triggerQuickView({{ product.id }}, '{{ product.name }}', '${{ '%.2f'|format(product.price) }}', '{{ product.description|replace('\n', ' ')|replace('\'', '\\\'') }}', '{{ url_for('static', filename='uploads/' + product.image) if product.image else '' }}')">
+                    <div>
+                        <div class="tile-img-container">
+                            {% if product.image %}
+                                <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="tile-product-img" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="tile-product-img d-flex align-items-center justify-content-center bg-light" style="height: 100%;">
+                                    <i class="fa-regular fa-image text-muted fs-3"></i>
+                                </div>
+                            {% endif %}
+                            <div class="position-absolute bottom-0 end-0 m-2">
+                                <span class="price-badge-capsule">${{ "%.2f"|format(product.price) }}</span>
+                            </div>
+                        </div>
+                        <div class="tile-details">
+                            <h6 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 0.85rem;">{{ product.name }}</h6>
+                            <p class="text-muted mb-0 text-truncate" style="font-size: 0.7rem;">{{ product.description or 'Tap to view details' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted bg-white rounded border border-light">
+            <i class="fa-solid fa-box-open mb-3 text-muted opacity-25" style="font-size: 40px;"></i>
+            <h6 class="small mb-1">No Active Products</h6>
+            <p class="small text-muted px-4 mb-0" style="font-size: 0.75rem;">This stand currently has no items paired. Check back soon.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Mobile Bottom Drawer Modal (Simulated native sheet) -->
+<div class="modal fade" id="productDrawer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-bottom">
+        <div class="modal-content modal-content-bottom text-dark bg-white">
+            <!-- Swipe indicator line bar -->
+            <div class="bottom-drawer-handle"></div>
+            
+            <div class="modal-header border-0 pt-3 pb-0">
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0 px-4 pb-4">
+                <!-- Image view -->
+                <div class="text-center bg-light rounded-4 p-3 mb-4 overflow-hidden" id="drawerImgBox" style="height: 220px; display: flex; align-items: center; justify-content: center;">
+                    <img id="drawerProductImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Product image" class="img-fluid rounded-3" style="max-height: 100%; object-fit: contain;">
+                    <div id="drawerImgFallback" class="d-none text-muted"><i class="fa-regular fa-image fs-1"></i></div>
+                </div>
+
+                <!-- Price pill & title -->
+                <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                    <h4 class="fw-bold mb-0 text-dark" id="drawerProductName" style="letter-spacing: -0.01em;">Product Name</h4>
+                    <span class="product-price-tag fs-4" id="drawerProductPrice">$0.00</span>
+                </div>
+
+                <div class="mb-3 d-flex align-items-center gap-1 text-muted" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-location-dot text-indigo" style="color: var(--primary);"></i>
+                    <span>Location: <strong>{{ asset.store_name }}</strong></span>
+                </div>
+
+                <hr class="border-secondary-subtle my-3" style="border-color: rgba(0,0,0,0.08) !important;">
+
+                <!-- Specifications description text -->
+                <h6 class="fw-bold mb-2 text-dark" style="font-size: 0.85rem;">Description & Details</h6>
+                <p class="text-secondary small mb-4" id="drawerProductDesc" style="line-height: 1.6; font-size: 0.8rem;"></p>
+
+                <!-- Call to floor buttons -->
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-indigo text-white w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" style="background: #4f46e5; border: none; border-radius: 12px; font-weight: 600; font-size: 0.85rem;" onclick="alert('Store Floor assistant paged to this display stand!')">
+                        <i class="fa-solid fa-bell-concierge"></i> Pager Assistance
+                    </button>
+                    <button class="btn btn-light border py-2.5 px-3 d-flex align-items-center justify-content-center" style="border-radius: 12px;" onclick="copyProductLink()">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handles copying coupon code
+    function copyCode(btn, code) {
+        navigator.clipboard.writeText(code).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+            btn.style.background = "rgba(16, 185, 129, 0.4)";
+            btn.style.borderColor = "#10b981";
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.background = "";
+                btn.style.borderColor = "";
+            }, 2000);
+        }).catch(() => {});
+    }
+
+    // Handles triggering native-feeling bottom drawer quickview modal sheet
+    let activeProductId = null;
+    const drawerModal = new bootstrap.Modal(document.getElementById('productDrawer'));
+
+    function triggerQuickView(id, name, price, desc, imgSrc) {
+        activeProductId = id;
+        document.getElementById('drawerProductName').innerText = name;
+        document.getElementById('drawerProductPrice').innerText = price;
+        document.getElementById('drawerProductDesc').innerText = desc || "No detailed specifications provided. Refer to floor clerk.";
+        
+        const img = document.getElementById('drawerProductImg');
+        const fallback = document.getElementById('drawerImgFallback');
+        
+        if (imgSrc) {
+            img.src = imgSrc;
+            img.classList.remove('d-none');
+            fallback.classList.add('d-none');
+        } else {
+            img.classList.add('d-none');
+            fallback.classList.remove('d-none');
+        }
+
+        drawerModal.show();
+    }
+
+    function copyProductLink() {
+        if (activeProductId) {
+            const domain = window.location.origin;
+            const productUrl = domain + "/product/" + activeProductId;
+            navigator.clipboard.writeText(productUrl).then(() => {
+                alert("Product link copied to clipboard!");
+            }).catch(() => {});
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Product - {% if asset %}{{ asset.asset_name }}{% else %}Select Asset{% endif %} - IBTSO Console{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 scroll-reveal">
+
+
+            <div class="row g-4">
+                <!-- Main Form Column -->
+                <div class="col-12">
+                    <div class="glass-card p-5">
+                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mb-4 text-center text-md-start">
+                            <div>
+                                <h2 class="fw-bold text-white mb-2"><i class="fa-solid fa-tags text-secondary me-2" style="color: var(--secondary) !important;"></i> Add Product SKU</h2>
+                                <p class="text-muted mb-0">Associate a new product listing item to the physical asset.</p>
+                            </div>
+                            <div class="mt-3 mt-md-0">
+                                <span class="badge badge-glow-primary py-2 px-3"><i class="fa-solid fa-cube me-1"></i> {% if asset %}{{ asset.asset_name }}{% else %}Unassigned SKU{% endif %}</span>
+                            </div>
+                        </div>
+
+                        <!-- Parent Asset Context Summary Card / Selector -->
+                        {% if asset %}
+                        <div class="bg-secondary-subtle p-3 rounded mb-4 border border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: rgba(255,255,255,0.02) !important; border-color: var(--border-color) !important;">
+                            <div>
+                                <span class="text-muted small">Target Retail Location:</span>
+                                <div class="fw-bold text-white fs-6"><i class="fa-solid fa-location-dot me-1 text-primary"></i> {{ asset.store_name }}</div>
+                            </div>
+                            <div>
+                                <span class="badge badge-glow-success">{{ asset.asset_type }}</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="mb-4">
+                            <label for="asset_id" class="form-label">Target Retail Asset Stand <span class="text-danger">*</span></label>
+                            <select class="form-select text-white" id="asset_id" name="asset_id" required style="background-color: rgba(9, 9, 11, 0.5);">
+                                <option value="" disabled selected>Choose active asset stand...</option>
+                                {% for a in assets %}
+                                <option value="{{ a.id }}" style="background: var(--dark-bg); color: #fff;">{{ a.asset_name }} (at {{ a.store_name }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please choose a retail asset to link this product to.
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <hr class="border-secondary-subtle my-4" style="border-color: var(--border-color) !important;">
+
+                        <form action="{% if asset %}{{ url_for('add_product', asset_id=asset.id) }}{% else %}{{ url_for('add_product') }}{% endif %}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            <div class="row g-4">
+                                <!-- Product Name -->
+                                <div class="col-md-8">
+                                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. Cola Sparkler 6-Pack">
+                                    <div class="invalid-feedback">
+                                        Please specify a product name.
+                                    </div>
+                                </div>
+
+                                <!-- Product Price -->
+                                <div class="col-md-4">
+                                    <label for="price" class="form-label">Product Retail Price ($) <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark border-secondary-subtle text-muted" style="border-color: var(--border-color) !important;">$</span>
+                                        <input type="number" class="form-control" id="price" name="price" step="0.01" min="0.00" required placeholder="14.99">
+                                        <div class="invalid-feedback">
+                                            Enter valid price (e.g. 14.99).
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <label for="description" class="form-label">Product Specifications / Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter key features, weight details, allergen information, etc..."></textarea>
+                                </div>
+
+                                <!-- Image Upload -->
+                                <div class="col-12">
+                                    <label for="image" class="form-label">Upload Product Showcase Image</label>
+                                    <div class="p-4 rounded border border-dashed text-center position-relative" style="background: rgba(255, 255, 255, 0.02); border: 2px dashed rgba(255, 255, 255, 0.15) !important;">
+                                        <input type="file" class="form-control position-absolute opacity-0 top-0 start-0 w-100 h-100 cursor-pointer" id="image" name="image" accept="image/*" onchange="previewProductImg(event)">
+                                        <div id="uploadPrompt" class="py-2">
+                                            <i class="fa-solid fa-cloud-arrow-up text-secondary mb-3" style="font-size: 40px; color: var(--secondary) !important;"></i>
+                                            <h6 class="text-white fw-bold mb-1">Drag file here or click to browse</h6>
+                                            <p class="small text-muted mb-0">Supported image types: JPEG, PNG, WEBP, GIF (Max size 5MB)</p>
+                                        </div>
+                                        <div id="previewContainer" class="d-none position-relative mt-2" style="max-height: 250px; overflow: hidden; border-radius: 12px;">
+                                            <img id="imagePreview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Upload Preview" style="width: 100%; height: auto; max-height: 240px; object-fit: contain;">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-3 px-3 rounded-pill" onclick="removePreview(event)">
+                                                <i class="fa-solid fa-xmark"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary-subtle my-5" style="border-color: var(--border-color) !important;">
+
+                            <div class="d-flex justify-content-end gap-3 flex-wrap">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-custom">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-glow px-4" style="background: linear-gradient(135deg, var(--secondary), var(--primary));">
+                                    <i class="fa-solid fa-circle-check me-1"></i> Save & Pair Product
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handles dynamic uploading image thumbnail preview
+    function previewProductImg(event) {
+        const input = event.target;
+        const reader = new FileReader();
+        
+        reader.onload = function(){
+            const imgElement = document.getElementById('imagePreview');
+            imgElement.src = reader.result;
+            
+            document.getElementById('uploadPrompt').classList.add('d-none');
+            document.getElementById('previewContainer').classList.remove('d-none');
+        };
+        
+        if (input.files && input.files[0]) {
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Handles resetting file upload inputs
+    function removePreview(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const fileInput = document.getElementById('image');
+        fileInput.value = ''; // Reset input value
+        
+        document.getElementById('previewContainer').classList.add('d-none');
+        document.getElementById('uploadPrompt').classList.remove('d-none');
+    }
+
+    // Standard Bootstrap Form validation logic
+    (function () {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Smart Retail Asset QR Platform - Modern QR Management{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-gradient text-center overflow-hidden position-relative py-5">
+    <div class="container my-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-start scroll-reveal">
+                <h1 class="hero-title mb-3">Bridge the Physical & Digital Retail Store</h1>
+                <p class="lead text-muted mb-4 fs-5">
+                    Deploy interactive display stands, promotional shelves, and smart kiosks inside supermarkets. Track customer interest, generate instant smart QRs, and update product campaigns on the fly without printing new tags.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-glow px-4 py-3">
+                        <i class="fa-solid fa-gauge me-2"></i> Open Admin Console
+                    </a>
+                    <a href="{{ url_for('add_asset') }}" class="btn btn-outline-custom px-4 py-3">
+                        <i class="fa-solid fa-plus me-2"></i> Deploy New Asset
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mt-5 mt-lg-0 scroll-reveal reveal-scale">
+                <div class="position-relative d-inline-block">
+                    <!-- Glassmorphic floating card decoration -->
+                    <div class="glass-card p-4 text-start position-absolute shadow-lg" style="top: -20px; left: -30px; max-width: 250px; z-index: 5; background: rgba(24, 24, 27, 0.95);">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="p-2 rounded bg-success-subtle text-success me-2"><i class="fa-solid fa-chart-line"></i></span>
+                            <span class="small text-muted fw-semibold">Analytics Live</span>
+                        </div>
+                        <h4 class="mb-0 fw-bold">+28.4%</h4>
+                        <span class="small text-success"><i class="fa-solid fa-arrow-trend-up"></i> Scan engagement rate</span>
+                    </div>
+
+                    <!-- Laptop/Dashboard Visual Element Mockup -->
+                    <div class="glass-card p-2" style="border-radius: 20px; overflow: hidden; max-width: 500px;">
+                        <div class="bg-dark p-2 d-flex align-items-center gap-1" style="border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom: 1px solid var(--border-color);">
+                            <span class="rounded-circle bg-danger" style="width: 8px; height: 8px; display: inline-block;"></span>
+                            <span class="rounded-circle bg-warning" style="width: 8px; height: 8px; display: inline-block;"></span>
+                            <span class="rounded-circle bg-success" style="width: 8px; height: 8px; display: inline-block;"></span>
+                            <span class="text-muted font-monospace ms-2" style="font-size: 10px;">retail-qr-mvp.local/dashboard</span>
+                        </div>
+                        <div class="bg-black p-4 text-center">
+                            <i class="fa-solid fa-circle-nodes text-primary mb-3" style="font-size: 60px; filter: drop-shadow(0 0 15px var(--primary));"></i>
+                            <h5 class="text-white fw-bold mb-1">Interactive QR System</h5>
+                            <p class="small text-muted mb-3">Physical Asset Placement Model</p>
+                            <div class="badge badge-glow-primary px-3 py-2 font-monospace">SQLite & SQLAlchemy DB connected</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow Steps Section -->
+<div class="container my-5 py-4">
+    <div class="text-center mb-5 scroll-reveal">
+        <h2 class="fw-bold">How the QR Platform Works</h2>
+        <p class="text-muted mx-auto" style="max-width: 600px;">
+            A simple three-step strategy to capture consumer intent, manage product promotions, and track conversions.
+        </p>
+    </div>
+
+    <div class="row g-4 stagger-container">
+        <!-- Step 1 -->
+        <div class="col-md-4 stagger-item">
+            <div class="glass-card p-4 h-100 text-center text-md-start">
+                <div class="stat-icon primary mb-3 mx-auto mx-md-0">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <h4 class="fw-bold">1. Define Asset & Store</h4>
+                <p class="text-muted mb-0">
+                    Register display stands, shelves, kiosks, or endcaps. Specify the physical store and upload banners for the stand.
+                </p>
+            </div>
+        </div>
+        <!-- Step 2 -->
+        <div class="col-md-4 stagger-item">
+            <div class="glass-card p-4 h-100 text-center text-md-start">
+                <div class="stat-icon secondary mb-3 mx-auto mx-md-0">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <h4 class="fw-bold">2. Attach Product Listings</h4>
+                <p class="text-muted mb-0">
+                    Link items currently on display. Manage detailed specifications, active pricing, images, and special checkout offers.
+                </p>
+            </div>
+        </div>
+        <!-- Step 3 -->
+        <div class="col-md-4 stagger-item">
+            <div class="glass-card p-4 h-100 text-center text-md-start">
+                <div class="stat-icon success mb-3 mx-auto mx-md-0">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <h4 class="fw-bold">3. Auto-Generate & Scan</h4>
+                <p class="text-muted mb-0">
+                    A unique QR code is created immediately. Place it on the stand; customers scan to view products and track scanner analytics.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Assets Showcase -->
+{% if featured_assets %}
+<div class="container my-5 py-4 border-top border-secondary-subtle" style="border-color: var(--border-color) !important;">
+    <div class="d-flex justify-content-between align-items-end mb-4 scroll-reveal">
+        <div>
+            <h3 class="fw-bold mb-1">Active Smart Displays</h3>
+            <p class="text-muted mb-0">Quick glance at registered promotional assets.</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-custom">
+            View All ({{ featured_assets|length }}) <i class="fa-solid fa-arrow-right ms-2"></i>
+        </a>
+    </div>
+
+    <div class="row g-4 stagger-container">
+        {% for asset in featured_assets %}
+        <div class="col-lg-4 col-md-6 stagger-item">
+            <div class="glass-card h-100">
+                {% if asset.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + asset.image) }}" class="card-img-top" alt="{{ asset.asset_name }}" style="height: 180px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary-subtle d-flex align-items-center justify-content-center" style="height: 180px;">
+                        <i class="fa-regular fa-image text-muted fs-1"></i>
+                    </div>
+                {% endif %}
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge badge-glow-primary">{{ asset.asset_type }}</span>
+                        <span class="badge badge-glow-success"><i class="fa-solid fa-eye me-1"></i> {{ asset.scan_count }} Scans</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-2">{{ asset.asset_name }}</h5>
+                    <p class="small text-muted mb-3"><i class="fa-solid fa-location-dot me-1"></i> Located at: <strong>{{ asset.store_name }}</strong></p>
+                    <p class="text-muted text-truncate mb-4" style="max-height: 48px; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;">
+                        {{ asset.description or 'No description provided.' }}
+                    </p>
+                    <a href="{{ url_for('asset_detail', asset_id=asset.id) }}" class="btn btn-outline-custom w-100 btn-sm">
+                        <i class="fa-solid fa-up-right-from-square me-1"></i> Customer Scan Page
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

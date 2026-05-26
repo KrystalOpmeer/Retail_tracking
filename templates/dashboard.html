@@ -1,0 +1,502 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Console Dashboard - IBTSO Platform{% endblock %}
+
+{% block content %}
+<div class="container my-5 py-2">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 scroll-reveal">
+        <div>
+            <h1 class="hero-title mb-2">Retail QR Dashboard</h1>
+            <p class="text-muted mb-0">Track customer scan engagement, manage physical displays, and update product associations.</p>
+        </div>
+        <div class="d-flex gap-3 mt-3 mt-md-0 flex-wrap">
+            <a href="{{ url_for('regenerate_qrs') }}" class="btn btn-outline-custom">
+                <i class="fa-solid fa-arrows-rotate me-2"></i> Regenerate QR Host Links
+            </a>
+            <a href="{{ url_for('add_asset') }}" class="btn btn-glow">
+                <i class="fa-solid fa-plus-circle me-2"></i> Deploy Asset Stand
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards Row -->
+    <div class="row g-4 mb-5 stagger-container">
+        <!-- Stat Card 1: Assets -->
+        <div class="col-md-4 stagger-item">
+            <div class="stat-card" style="position: relative; overflow: hidden;">
+                <div>
+                    <span class="text-muted small fw-semibold uppercase d-block mb-1">Active Displays</span>
+                    <h2 class="mb-0 fw-bold text-white" id="total-assets-val">{{ total_assets }}</h2>
+                    <span class="small text-muted">Deployed stand locations</span>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Stat Card 2: Connected Products -->
+        <div class="col-md-4 stagger-item">
+            <div class="stat-card" style="position: relative; overflow: hidden;">
+                <div>
+                    <span class="text-muted small fw-semibold uppercase d-block mb-1">Paired Products</span>
+                    <h2 class="mb-0 fw-bold text-white" id="total-products-val">{{ total_products }}</h2>
+                    <span class="small text-muted">SKUs linked to displays</span>
+                </div>
+                <div class="stat-icon secondary">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Stat Card 3: Total QR Scans -->
+        <div class="col-md-4 stagger-item">
+            <div class="stat-card" style="position: relative; overflow: hidden;">
+                <div>
+                    <span class="text-muted small fw-semibold uppercase d-block mb-1">Total QR Engagements</span>
+                    <h2 class="mb-0 fw-bold text-white" id="total-scans-val">{{ total_scans }}</h2>
+                    <span class="small text-success"><i class="fa-solid fa-arrow-trend-up me-1"></i> Lifetime scans</span>
+                </div>
+                <div class="stat-icon success">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Chart & Quick Links -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8 scroll-reveal">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-chart-line text-primary me-2"></i> QR Scan Activity Trend</h5>
+                        <p class="small text-muted mb-0">Live timeline scan events aggregated by date</p>
+                    </div>
+                    <span class="badge badge-glow-success"><i class="fa-solid fa-circle-play me-1"></i> Live feed</span>
+                </div>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="scanAnalyticsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 scroll-reveal">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-rocket text-secondary me-2"></i> Quick Actions</h5>
+                    <p class="small text-muted mb-4">Speed up store setups by pairing new components instantly.</p>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('add_asset') }}" class="btn btn-outline-custom text-start py-3 px-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fa-solid fa-circle-plus text-primary me-2 fs-5"></i>
+                                <span class="fw-bold text-white">Create Asset Stand</span>
+                                <div class="small text-muted">Register a shelf/display type</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-muted"></i>
+                        </a>
+                        <a href="{{ url_for('add_product') }}" class="btn btn-outline-custom text-start py-3 px-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fa-solid fa-cart-plus text-secondary me-2 fs-5"></i>
+                                <span class="fw-bold text-white">Link New SKU</span>
+                                <div class="small text-muted">Associate product specs & price</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="border-top border-secondary-subtle pt-3 mt-4" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex align-items-center">
+                        <span class="status-dot-active"></span>
+                        <span class="small text-white fw-bold">DB Sync Status: Connected</span>
+                    </div>
+                    <p class="small text-muted mb-0 mt-1">Connected to local SQLite container</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Asset Stands Table Section -->
+    <div class="scroll-reveal">
+        <div class="glass-card p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                <div>
+                    <h4 class="fw-bold text-white mb-1"><i class="fa-solid fa-list-check text-indigo me-2" style="color: var(--primary);"></i> Active Promotional Stands</h4>
+                    <p class="small text-muted mb-0">Total of {{ assets|length }} registered assets in local supermarkets</p>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    <input type="text" id="assetSearchInput" class="form-control form-control-sm" placeholder="🔍 Search store or asset name..." onkeyup="filterAssetsTable()">
+                </div>
+            </div>
+
+            {% if assets %}
+            <div class="table-responsive">
+                <table class="table custom-table align-middle mb-0" id="assetsTable">
+                    <thead>
+                        <tr>
+                            <th>Display Asset</th>
+                            <th>Category</th>
+                            <th>Retail Location</th>
+                            <th>Paired Products</th>
+                            <th>Total Scans</th>
+                            <th>QR Tag Preview</th>
+                            <th>Status</th>
+                            <th class="text-end">Management Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asset in assets %}
+                        <tr class="asset-row" id="asset-row-{{ asset.id }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if asset.image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + asset.image) }}" class="rounded me-3" style="width: 48px; height: 48px; object-fit: cover;" alt="{{ asset.asset_name }}">
+                                    {% else %}
+                                    <div class="bg-secondary-subtle rounded me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <i class="fa-regular fa-image text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-white search-target-name">{{ asset.asset_name }}</h6>
+                                        <span class="small text-muted">ID: {{ asset.id }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-glow-primary">{{ asset.asset_type }}</span>
+                            </td>
+                            <td>
+                                <span class="search-target-store"><i class="fa-solid fa-location-dot me-1 text-muted"></i> {{ asset.store_name }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-group me-2">
+                                        {% if asset.products %}
+                                            {% for prod in asset.products[:3] %}
+                                                {% if prod.image %}
+                                                <img src="{{ url_for('static', filename='uploads/' + prod.image) }}" title="{{ prod.name }}" alt="{{ prod.name }}">
+                                                {% else %}
+                                                <span class="avatar-placeholder" title="{{ prod.name }}">{{ prod.name[:1]|upper }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if asset.products|length > 3 %}
+                                            <span class="avatar-placeholder">+{{ asset.products|length - 3 }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted small">No items</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('add_product', asset_id=asset.id) }}" class="btn btn-sm btn-outline-custom py-1 px-2 border-0" title="Pair Product SKU">
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-white" id="scan-count-{{ asset.id }}">
+                                    <i class="fa-solid fa-eye text-success me-1"></i> {{ asset.scan_count }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if asset.qr_code %}
+                                <div class="qr-preview-box cursor-pointer" onclick="openQrModal('{{ asset.asset_name }}', '{{ url_for('static', filename='qr_codes/' + asset.qr_code) }}', '{{ request.host_url }}asset/{{ asset.id }}', {{ asset.id }})">
+                                    <img id="qr-img-{{ asset.id }}" src="{{ url_for('static', filename='qr_codes/' + asset.qr_code) }}" alt="QR Code" style="width: 42px; height: 42px;">
+                                </div>
+                                {% else %}
+                                <span class="text-danger small"><i class="fa-solid fa-triangle-exclamation"></i> Missing QR</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-dot-active"></span>
+                                <span class="small text-white">Active</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-sm btn-outline-custom" style="color: #fbbf24; border-color: rgba(251,191,36,0.3);" onclick="simulateScan({{ asset.id }})" title="Simulate a QR scan for testing (increments count via AJAX)">
+                                        <i class="fa-solid fa-bolt me-1"></i> Test Scan
+                                    </button>
+                                    <a href="{{ url_for('asset_detail', asset_id=asset.id) }}?preview=true" class="btn btn-sm btn-outline-custom" target="_blank" title="Preview customer page (does NOT count as a scan)">
+                                        <i class="fa-solid fa-eye me-1"></i> Preview
+                                    </a>
+                                    <form action="{{ url_for('delete_asset', asset_id=asset.id) }}" method="POST" onsubmit="return confirm('Delete asset \'{{ asset.asset_name }}\' and all linked products?')" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger rounded" title="Delete Asset Display">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Beautiful Empty State -->
+            <div class="text-center py-5">
+                <i class="fa-solid fa-store text-muted mb-3" style="font-size: 60px;"></i>
+                <h4 class="text-white fw-bold">No Retail Assets Deployed</h4>
+                <p class="text-muted mx-auto" style="max-width: 400px;">
+                    Start generating digital interactions inside physical stores by deploying your first asset stand.
+                </p>
+                <a href="{{ url_for('add_asset') }}" class="btn btn-glow mt-2">
+                    <i class="fa-solid fa-square-plus me-1"></i> Deploy First Stand
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- QR Details Zoom Modal -->
+<div class="modal fade" id="qrZoomModal" tabindex="-1" aria-labelledby="qrZoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card p-4 text-center text-white" style="background: rgba(18, 18, 22, 0.96);">
+            <div class="modal-header border-0 pb-0 justify-content-between">
+                <h5 class="modal-title fw-bold text-white" id="qrZoomModalLabel">Asset QR Code Tag</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="small text-muted mb-3" id="qrModalAssetName"></p>
+                <div class="p-3 bg-white rounded d-inline-block shadow mb-4">
+                    <img id="qrZoomImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Code Full" style="width: 240px; height: 240px; image-rendering: pixelated;">
+                </div>
+                
+                <div class="mb-4 text-start">
+                    <label class="form-label small text-muted d-block mb-2">Base Host URL (for scanning)</label>
+                    <div class="input-group mb-1">
+                        <input type="text" id="qrModalHostUrl" class="form-control text-white" style="background-color: rgba(9, 9, 11, 0.7); font-size: 0.9rem;" placeholder="e.g. http://192.168.1.15:5000">
+                        <button class="btn btn-glow-primary px-3" type="button" onclick="regenerateCustomQr()">
+                            <i class="fa-solid fa-arrows-rotate"></i> Update QR
+                        </button>
+                    </div>
+                    <span class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.35;">
+                        <i class="fa-solid fa-circle-info me-1"></i> To scan and open pages on a phone, input your workstation's local network IP address (e.g. <code>http://192.168.x.x:5000</code>) instead of <code>localhost</code>.
+                    </span>
+                </div>
+
+                <div class="mb-4 text-start">
+                    <label class="form-label small text-muted d-block mb-2">Target Landing URL</label>
+                    <div class="input-group">
+                        <input type="text" id="qrModalTargetUrl" class="form-control text-white" readonly style="background-color: rgba(9, 9, 11, 0.7); font-size: 0.85rem;">
+                        <button class="btn btn-outline-custom" type="button" onclick="copyModalUrl()">
+                            <i class="fa-solid fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <a id="qrDownloadButton" href="#" download class="btn btn-glow">
+                        <i class="fa-solid fa-cloud-arrow-down me-2"></i> Download High-Res PNG
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let myChartInstance = null;
+    let currentAssetId = null;
+
+    // Analytics Line Chart Setup
+    const ctx = document.getElementById('scanAnalyticsChart');
+    if (ctx) {
+        const chartDates = {{ analytics_dates|tojson }};
+        const chartCounts = {{ analytics_counts|tojson }};
+
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.05)');
+
+        myChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartDates,
+                datasets: [{
+                    label: 'Daily Scan Scopes',
+                    data: chartCounts,
+                    borderColor: '#6366f1',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#a855f7',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 1.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.45
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                        ticks: { color: '#a1a1aa', stepSize: 1 }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#a1a1aa' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Modal popup state setting
+    function openQrModal(assetName, qrImgUrl, targetUrl, assetId) {
+        currentAssetId = assetId;
+        document.getElementById('qrModalAssetName').innerText = "Stand Display: " + assetName;
+        document.getElementById('qrZoomImage').src = qrImgUrl;
+        document.getElementById('qrModalTargetUrl').value = targetUrl;
+        
+        // Extract host URL from targetUrl
+        try {
+            const parsedUrl = new URL(targetUrl);
+            document.getElementById('qrModalHostUrl').value = parsedUrl.origin;
+        } catch(e) {
+            document.getElementById('qrModalHostUrl').value = window.location.origin;
+        }
+        
+        // Setup download button
+        const dlBtn = document.getElementById('qrDownloadButton');
+        dlBtn.href = qrImgUrl;
+        dlBtn.download = "QR_" + assetName.replace(/\s+/g, '_') + ".png";
+
+        // Show Bootstrap Modal
+        const myModal = new bootstrap.Modal(document.getElementById('qrZoomModal'));
+        myModal.show();
+    }
+
+    // Custom QR Regeneration
+    function regenerateCustomQr() {
+        if (!currentAssetId) return;
+        const hostUrl = document.getElementById('qrModalHostUrl').value.trim();
+        if (!hostUrl) {
+            alert("Please enter a valid Host URL");
+            return;
+        }
+
+        fetch(`/api/regenerate-qr/${currentAssetId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ host_url: hostUrl })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Update modal elements
+                document.getElementById('qrZoomImage').src = data.qr_code_url;
+                document.getElementById('qrModalTargetUrl').value = data.target_url;
+                document.getElementById('qrDownloadButton').href = data.qr_code_url;
+                
+                // Update inline table image thumbnail
+                const inlineImg = document.getElementById(`qr-img-${currentAssetId}`);
+                if (inlineImg) {
+                    inlineImg.src = data.qr_code_url;
+                }
+                
+                alert("QR Code updated and regenerated successfully!");
+            } else {
+                alert("Failed to regenerate QR code: " + data.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("An error occurred while regenerating QR code.");
+        });
+    }
+
+    // Scan simulation function
+    function simulateScan(assetId) {
+        fetch(`/api/simulate-scan/${assetId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // 1. Update individual asset scan count in the table
+                const countEl = document.getElementById(`scan-count-${assetId}`);
+                if (countEl) {
+                    countEl.innerHTML = `<i class="fa-solid fa-eye text-success me-1"></i> ${data.asset_scan_count}`;
+                }
+
+                // 2. Update top stats card total scans
+                const totalScansVal = document.getElementById('total-scans-val');
+                if (totalScansVal) {
+                    totalScansVal.innerText = data.total_scans;
+                }
+
+                // 3. Update the analytics chart data
+                if (myChartInstance) {
+                    myChartInstance.data.labels = data.analytics_dates;
+                    myChartInstance.data.datasets[0].data = data.analytics_counts;
+                    myChartInstance.update();
+                }
+
+                // Row flash visual feedback using CSS keyframe animations
+                const row = document.getElementById(`asset-row-${assetId}`);
+                if (row) {
+                    row.classList.add('row-flash-active');
+                    setTimeout(() => {
+                        row.classList.remove('row-flash-active');
+                    }, 1200);
+                }
+            } else {
+                alert("Failed to simulate scan: " + data.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error communicating with the server.");
+        });
+    }
+
+    // Clipboards copy functionality
+    function copyModalUrl() {
+        const copyText = document.getElementById("qrModalTargetUrl");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        
+        navigator.clipboard.writeText(copyText.value).then(() => {
+            alert("URL successfully copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy text: ", err);
+        });
+    }
+
+    // Filter Assets live table function
+    function filterAssetsTable() {
+        const input = document.getElementById("assetSearchInput");
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll(".asset-row");
+
+        rows.forEach(row => {
+            const nameEl = row.querySelector(".search-target-name");
+            const storeEl = row.querySelector(".search-target-store");
+            
+            const nameText = nameEl ? nameEl.textContent.toLowerCase() : "";
+            const storeText = storeEl ? storeEl.textContent.toLowerCase() : "";
+            
+            if (nameText.includes(filter) || storeText.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+</script>
+{% endblock %}
