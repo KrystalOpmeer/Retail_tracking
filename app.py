@@ -67,6 +67,7 @@ def generate_qr_code(asset_id, host_url):
 
 def asset_to_dict(asset, include_products=True):
     """Serialize an Asset model to a JSON-safe dict."""
+    host = request.host_url.rstrip('/')
     d = {
         "id": asset.id,
         "brand_id": asset.brand_id,
@@ -75,9 +76,9 @@ def asset_to_dict(asset, include_products=True):
         "store_name": asset.store_name,
         "description": asset.description,
         "image": asset.image,
-        "image_url": f"/static/uploads/{asset.image}" if asset.image else None,
+        "image_url": f"{host}/static/uploads/{asset.image}" if asset.image else None,
         "qr_code": asset.qr_code,
-        "qr_code_url": f"/static/qr_codes/{asset.qr_code}" if asset.qr_code else None,
+        "qr_code_url": f"{host}/static/qr_codes/{asset.qr_code}" if asset.qr_code else None,
         "scan_count": asset.scan_count,
     }
     if include_products:
@@ -87,6 +88,7 @@ def asset_to_dict(asset, include_products=True):
 
 def product_to_dict(product):
     """Serialize a Product model to a JSON-safe dict."""
+    host = request.host_url.rstrip('/')
     return {
         "id": product.id,
         "asset_id": product.asset_id,
@@ -94,7 +96,7 @@ def product_to_dict(product):
         "description": product.description,
         "price": product.price,
         "image": product.image,
-        "image_url": f"/static/uploads/{product.image}" if product.image else None,
+        "image_url": f"{host}/static/uploads/{product.image}" if product.image else None,
     }
 
 

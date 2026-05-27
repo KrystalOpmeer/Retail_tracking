@@ -1,7 +1,7 @@
 // Centralised API client for all Flask REST calls.
 // The Vite proxy forwards /api/* and /static/* to http://127.0.0.1:5000
 
-const BASE = '/api'
+const BASE = import.meta.env.VITE_API_URL || '/api'
 
 async function request(path, options = {}) {
   const token = localStorage.getItem('ibtso_token')
