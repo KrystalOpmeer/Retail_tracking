@@ -1,0 +1,33 @@
+# Python virtual environments
+venv/
+.venv/
+ENV/
+
+# Python caching
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Databases
+retail_platform.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node.js
+node_modules/
+dist/
+.env
+
+# Media Uploads & QR Codes
+# Keep the directory folders but ignore files inside
+static/uploads/*
+static/qr_codes/*
+!static/uploads/seed_asset.jpg
+!static/uploads/seed_product_1.jpg
+!static/uploads/seed_product_2.jpg
+
+# Installers
+node_installer.msi
+node.zip

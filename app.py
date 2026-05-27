@@ -16,8 +16,15 @@ CORS(app)  # Enable CORS for all routes (React dev server on port 5173)
 
 # Configuration
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config['SECRET_KEY'] = 'dev-secret-key-for-smart-retail-asset-platform-mvp'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'retail_platform.db')
+
+# Security key loading from env
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-for-smart-retail-asset-platform-mvp')
+
+# Database connection loading from env (supports postgresql out of the box)
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'retail_platform.db'))
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # File upload settings
@@ -161,7 +168,7 @@ def seed_initial_data():
         except Exception as e:
             print(f"Error creating seed image files: {e}")
 
-        beverage_asset.qr_code = generate_qr_code(beverage_asset.id, "http://127.0.0.1:5173/")
+        beverage_asset.qr_code = generate_qr_code(beverage_asset.id, os.environ.get('FRONTEND_URL', 'http://127.0.0.1:5173/'))
         db.session.commit()
 
 
@@ -388,7 +395,7 @@ def api_create_asset():
         db.session.add(new_asset)
         db.session.commit()
 
-        host_url = request.form.get('host_url') or request.host_url
+        host_url = request.form.get('host_url') or os.environ.get('FRONTEND_URL') or request.host_url
         qr_filename = generate_qr_code(new_asset.id, host_url)
         new_asset.qr_code = qr_filename
         db.session.commit()
@@ -513,7 +520,7 @@ def api_regenerate_qr(asset_id):
         return jsonify({"error": "You do not have permission to regenerate QR for this asset."}), 403
 
     data = request.get_json() or {}
-    custom_host = data.get('host_url') or request.host_url
+    custom_host = data.get('host_url') or os.environ.get('FRONTEND_URL') or request.host_url
 
     try:
         qr_filename = generate_qr_code(asset.id, custom_host)
@@ -614,7 +621,7 @@ def api_delete_product(product_id):
 def api_regenerate_all_qrs():
     """Regenerate QR codes for every asset of this brand using a given host URL."""
     data = request.get_json() or {}
-    host_url = data.get('host_url') or request.host_url
+    host_url = data.get('host_url') or os.environ.get('FRONTEND_URL') or request.host_url
     try:
         assets = Asset.query.filter_by(brand_id=g.current_brand.id).all()
         for asset in assets:
